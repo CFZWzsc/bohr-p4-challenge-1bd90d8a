@@ -1,0 +1,17 @@
+{
+  "case_id": "demo-chart-001",
+  "task_instruction": "Generate a publication bar chart from expression.csv with axis labels, units, legend, n and significance markers; deliver an editable SVG.",
+  "materials": ["expression.csv", "material.md"],
+  "chart_type": "bar",
+  "output_contract": {
+    "editable_source": "layered editable source file",
+    "exports": "exported SVG with size, font and colour checks",
+    "provenance_and_changes": "element -> source row/column mapping and change record",
+    "case_id": "",
+    "compliance_checks": "",
+    "content_map": "",
+    "exceptions": "",
+    "export_artifact": "",
+    "status": ""
+  }
+}
