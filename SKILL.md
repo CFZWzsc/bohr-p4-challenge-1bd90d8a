@@ -30,7 +30,7 @@ description: Use when tabular or reported values must become a chart whose marks
 6. **图元映射**：为每个数值生成 `mark_id`、系列、行号、列名、归一化位置和原始值字符串。
 7. **图例与标注**：图例项与系列一一对应；检查图例缺失/多余、误差线含义、显著性标记、样本量 n。
 8. **标注校验**：检查轴标签与单位、刻度范围、长标签溢出风险、空值、系列长度不一致。
-9. **导出计划**：登记目标格式与检查项，`performed=false`，不伪造检查结果。
+9. **导出与绘图**：实际写出 `figure.svg`（柱、SD 误差线、显著性箭头、轴与图例均为 `<text>`/`<rect>`/`<path>` 元素）与 `figure-spec.json`；SVG 项 `performed=true` 并记录字节数与 SHA-256，未执行的格式如实 `false`。
 10. **契约落盘**：保留 `case_id` 与全部 `output_contract` 字段。
 
 ## 评分维度对应
@@ -62,7 +62,7 @@ description: Use when tabular or reported values must become a chart whose marks
 
 ## 限制
 
-只解析显式表格与常见分隔文本；合并单元格、多层表头、图片中的数字无法可靠还原。归一化位置是绘图约束，不是最终像素坐标。
+只解析显式表格与常见分隔文本；合并单元格、多层表头、图片中的数字无法可靠还原。归一化位置用于数据映射，图稿坐标由确定性布局计算。
 
 ## 最小调用示例（示例，非官方案例结果）
 
@@ -72,6 +72,17 @@ python scripts/run_skill.py --case /input/case.json --out /app/output/result.jso
 
 示例输入（示意）：两列 `组别, 表达量 (a.u.)`，三行数值。示例输出（示意）：`status="success"`，`chart_spec.chart_type="bar"`，3 个 marks 各自带 `row=1..3` 与原始值。该输出仅为示例，不代表官方固定案例结果。
 
+
+## Quickstart
+
+在包根目录执行（演示案例为 5 组、4 条显著性比较的合成表，非真实实验）：
+
+```bash
+python scripts/run_skill.py --case examples/demo-case/case.json --out ./demo-output/result.json --work ./demo-output
+```
+
+- 演示案例：`examples/demo-case/case.json` + `expression.csv` + `material.md`，纯合成。
+- 输出：`result.json`、`figure.svg`（柱状图 + SD 误差线 + 显著性箭头）与 `figure-spec.json`；`exports`/`provenance_and_changes`/`compliance_checks`/`content_map`/`exceptions` 均写真实内容。
 
 ## 交付保证与评分对齐
 
