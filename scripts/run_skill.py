@@ -568,9 +568,11 @@ def render_chart(rows, series_name, unit, comparisons, source_name, out_dir,
         bar_h = base_y - y
         anchor = "%s:row %d" % (source_name, index + 2)
         svg.append(
-            '<g id="bar-%d" data-source-anchor="%s" data-quote="%s">'
+            '<g id="bar-%d" data-source-anchor="%s" data-quote="%s" '
+            'data-value="%s" data-row="%d">'
             % (index + 1, figure_svg.attr(anchor),
-               figure_svg.attr(row.get("quote") or "")))
+               figure_svg.attr(row.get("quote") or ""), "%g" % value,
+               index + 2))
         svg.append(
             '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="3" '
             'fill="%s" fill-opacity="0.9" stroke="#2E5A87" stroke-width="1"/>'
@@ -1118,6 +1120,10 @@ def main():
                 svg_text = svg_file_handle.read()
             map_ids = svg_checks.map_ids_from_content_map(result["content_map"])
             svg_audit = svg_checks.audit_svg(figure_path, map_ids=map_ids)
+            svg_checks.add_checks(svg_audit, [
+                svg_checks.provenance_check(result["content_map"]),
+                svg_checks.numeric_check(svg_text, result["content_map"]),
+            ])
             write_json(os.path.join(out_dir, "svg_checks.json"), svg_audit)
 
             # 可编辑性证明：打开 figure.svg 改一处标签字号，再重新导出 PNG/PDF
