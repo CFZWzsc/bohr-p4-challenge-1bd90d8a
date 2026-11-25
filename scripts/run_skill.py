@@ -488,7 +488,7 @@ def render_chart(rows, series_name, unit, comparisons, source_name, out_dir,
     ticks, ymax = _nice_ticks(highest * 1.15)
     height = base_y + 196.0
     scale = plot_h / ymax
-    unit_note = (" (%s)" % unit) if unit else ""
+    unit_note = (" (%s)" % unit) if unit and str(unit) not in str(series_name) else ""
 
     def ypos(value):
         return base_y - max(0.0, value) * scale
@@ -736,6 +736,9 @@ def render_chart(rows, series_name, unit, comparisons, source_name, out_dir,
     spec_bytes = spec_text.encode("utf-8")
     with open(os.path.join(out_dir, "figure-spec.json"), "wb") as handle:
         handle.write(spec_bytes)
+    previews = figure_svg.export_previews(svg_text, out_dir, prefix="figure",
+                                          width_px=int(width), height_px=int(height),
+                                          target_dpi=300)
     return {
         "file": "figure.svg", "spec_file": "figure-spec.json", "format": "svg",
         "path": os.path.join(out_dir, "figure.svg"),
@@ -747,6 +750,8 @@ def render_chart(rows, series_name, unit, comparisons, source_name, out_dir,
         "text_count": facts["text_count"],
         "marker_count": facts["marker_count"],
         "marker_edges": facts["marker_edges"],
+        "png": previews.get("png"), "pdf": previews.get("pdf"),
+        "preview_log": previews.get("log", ""),
         "figure_spec": spec,
     }
 
@@ -1043,11 +1048,22 @@ def main():
                 "bytes": figure_info["bytes"], "sha256": figure_info["sha256"],
                 "checks": ["text_editable", "series_named", "legend_present"],
             })
+        previews = {"png": figure_info.get("png"), "pdf": figure_info.get("pdf")}
         for entry in export_plan:
-            if entry is not svg_entry:
+            if entry is svg_entry:
+                continue
+            preview = previews.get(str(entry.get("format", "")).lower())
+            if preview:
+                entry.update({"performed": True, "file": preview["file"],
+                               "bytes": preview["bytes"],
+                               "sha256": preview["sha256"],
+                               "renderer": preview["renderer"],
+                               "dpi": preview["dpi"]})
+                entry.pop("reason", None)
+            else:
                 entry["performed"] = False
-                entry["reason"] = ("not produced in this run; SVG is the editable "
-                                   "deliverable and no rasteriser was invoked")
+                entry["reason"] = ("not produced in this run: no raster or PDF "
+                                   "backend was available")
         result["result"]["export_plan"] = export_plan
         result["exports"] = figure_svg.export_entries(figure_info)
         result["provenance_and_changes"] = {
@@ -1086,9 +1102,9 @@ def main():
              "evidence": "%d arrows traced to material sentences" % len(comparisons)},
         ]
         result["content_map"] = figure_svg.content_map(figure_info)
-        result["exceptions"] = [{
+        result["exceptions"] = [] if (figure_info.get("png") and figure_info.get("pdf")) else [{
             "item": "png/pdf export", "status": "not_produced",
-            "reason": "no rasteriser or PDF backend was invoked; figure.svg is the deliverable",
+            "reason": figure_info.get("preview_log") or "no raster or PDF backend available",
         }]
         if not comparisons:
             result["exceptions"].append({
