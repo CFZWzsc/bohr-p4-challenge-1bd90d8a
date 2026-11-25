@@ -109,7 +109,7 @@ python scripts/run_skill.py --case examples/demo-case/case.json --out ./demo-out
 ### 真实图稿与预览（本次必做）
 
 - 脚本只输出规格（如 `export_plan[].performed=false`）时，调用 Agent 必须依据规格真实写出可编辑 SVG 图表到 `/app/output/`：系列、坐标轴、图例、数据标签均为可编辑元素。
-- 任务要求 PNG/PDF 或需要人工核看时，必须实际渲染预览文件；环境无栅格化工具时以真实 SVG 作为矢量预览，并在 `result.json` 写明格式、路径与原因。
+- PNG（300 dpi）与 PDF 由同一图元树真实导出，并记录渲染器与 dpi；无 Pillow 时退化为纯 Python 栅格预览，并在 `result.json` 写明原因。
 - 仅当文件真实落盘、可打开并核对后，才将源文件与导出项标记为已执行（`produced=true`、`performed=true`），并写入路径、字节数与 SHA-256；未执行的检查项如实写 `false` 与原因，不伪造渲染或检查结果。
 
 ## 最终交付强制要求
