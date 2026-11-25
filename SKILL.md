@@ -45,7 +45,7 @@ description: Use when tabular or reported values must become a chart whose marks
 
 `/app/output/result.json` 顶层保留 `case_id`、`output_contract` 的全部字段、`status`、`result`、`evidence`、`uncertainty`、`errors`、`stats`、`skill`、`challenge_id`、`contract_notes`。未支持字段写 `null` 并记录原因。
 
-主要交付段：`result.chart_spec.series`、`result.chart_spec.marks`、`result.chart_spec.legend`、`result.value_source_map`、`result.annotation_checks`。
+主要交付段：`result.chart_spec.series`、`result.chart_spec.marks`、`result.chart_spec.legend`、`result.value_source_map`、`result.annotation_checks`；机检产物 `svg_checks.json`、`edit_diff.json`、`gain_evidence.json`、`figure-edited.svg`（柱体带 `data-value`/`data-row`）。
 
 ## 异常处理
 
