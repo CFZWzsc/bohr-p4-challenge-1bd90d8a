@@ -1,45 +1,34 @@
-# Runtime contract
+# 科研数据图表生成与编辑 Skill
 
-Bohrium Playground Period 4 submission — challenge `challenge-1bd90d8a` (track: `scientific-graphics`).
+把材料里的表格/内联数值画成带坐标轴、刻度、单位、误差线与来源标注的数据图，
+并导出 300 dpi 的 `figure.png` 与 `figure.pdf`。Python 标准库实现，离线、确定性。
 
-This repository holds the complete skill package for the challenge: the skill
-definition, its executable pipeline and all supporting documents. No precomputed
-answers, private data or credentials are included.
-
-## Skill
-
-- Name: `source-value-chart-builder`
-- Summary: Use when tabular or reported values must become a chart whose marks, axes, units, legend and source rows are all traceable to the input data.
-
-## Contents
-
-| File |
-|------|
-| `README.md` |
-| `SKILL.md` |
-| `examples/demo-case/case.json` |
-| `examples/demo-case/expression.csv` |
-| `examples/demo-case/material.md` |
-| `examples/demo-case/task.md` |
-| `scripts/figure_svg.py` |
-| `scripts/run_skill.py` |
-| `scripts/svg_checks.py` |
-| `README.md` |
-
-## How to run
+## 使用
 
 ```bash
-python scripts/sk_entry.py --input /input --work /app/work --out /app/output
+python scripts/run_skill.py --case examples/demo-case/case.json \
+    --out /app/output/result.json --work /app/work
 ```
 
-A single deterministic pass reads `/input`, computes the deliverable and writes a
-contract-complete `/app/output/result.json` plus the human-readable review files
-described in `SKILL.md`. The same input always produces byte-identical output; no
-network access is used, and fields the materials cannot support are reported
-explicitly instead of being left empty.
+- 输入：`case.json`、`task.md`、含表格的 CSV 或正文（`examples/demo-case/expression.csv` 为样例）。
+- 输出：`result.json`（契约键 `case_id`/`status`/`editable_source`/`export_artifact`/
+  `content_map`/`compliance_checks`/`exceptions`）、`figure.svg`、`figure-spec.json`、
+  `figure.png`、`figure.pdf`。
 
-## Notes
+## 设计要点
 
-- Pure Python standard library; no network access required.
-- Every claim is anchored to paragraph-level evidence; unknown items are reported
-  in `uncertainty` instead of being fabricated.
+- **数据可回溯**：每个绘制值带 `value_origin`（列/行或原文片段），`evidence` 记录解析来源；
+  单位缺失或数值歧义写入 `uncertainty`，不猜测。
+- **图面规范**：坐标轴、刻度值、轴标题（含单位）、组标签、误差线、图例与标题齐全；
+  数值标签不重复拼接单位。
+- **可编辑**：`layer-axes` / `layer-series` / `layer-labels` / `legend` 分层，文字全部 `<text>`。
+- **可核验**：`compliance_checks` 覆盖数值来源、轴范围包含数据、刻度数量、图例、PNG 非空白像素。
+- **确定性**：解析与布局只依赖输入顺序，无随机数与时间戳，双跑逐字节一致。
+
+## 验证
+
+```bash
+python scripts/run_skill.py --case examples/demo-case/case.json --out /tmp/r1/result.json --work /tmp/r1
+python scripts/run_skill.py --case examples/demo-case/case.json --out /tmp/r2/result.json --work /tmp/r2
+# 两次产物 sha256 应完全一致
+```
